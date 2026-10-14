@@ -8,7 +8,8 @@ Se actualiza al cerrar cada hito y al terminar cada sesión. El detalle de lo he
 - **Último hito cerrado:** M14. Agente y app están escritos, y `make check` pasa.
 - **Próximo paso:** M13 y M15, que necesitan el teléfono: instalar el APK
   (`cd android && ./gradlew installDebug`) y recorrer la lista "Verificación en el teléfono" de
-  más abajo. **Ninguna pantalla se vio todavía en un dispositivo.**
+  más abajo. El 2026-10-13 Francisco instaló la app y conectó por Wi-Fi (ver criterios); falta
+  que confirme cómo se ven las pantallas y recorrer el resto de la lista.
 - **Código existente:** `agent/` y `android/`.
 
 ## Entorno verificado (2026-10-13)
@@ -70,7 +71,7 @@ problemas de diseño o de comportamiento que solo aparecen en pantalla.
 | Recopila métricas reales cada cinco segundos | hecho | Valores contrastados con `nproc`, `free` y `df`; el cliente de prueba recibió una muestra por ciclo. |
 | Almacena historial en SQLite | hecho | Filas contadas en la base tras una ejecución real; pruebas de `internal/storage`. |
 | Muestra en consola su dirección IP local | hecho | Mostró solo la IP del Wi-Fi y omitió loopback y los tres puentes de Docker. |
-| El celular se conecta con IP, puerto y token | sin verificar en dispositivo | La lógica pasa en `make check-e2e` (transporte y gestor reales contra el agente). Falta el teléfono. |
+| El celular se conecta con IP, puerto y token | hecho | 2026-10-13: teléfono físico por Wi-Fi con router; conexión TCP establecida desde el teléfono al agente (vista con `ss`), app en primer plano y sin fallos en logcat. |
 | La app recibe métricas por WebSocket | verificado sin dispositivo | `make check-e2e`: recibe muestras reales, una por ciclo. Falta el teléfono. |
 | El dashboard muestra CPU, RAM, discos, red y procesos | sin verificar en dispositivo | El código compila; los datos llegan completos en `check-e2e`. La pantalla no se vio. |
 | El historial se consulta mediante REST | verificado sin dispositivo | `curl` y `check-e2e`, que usa el mismo código que la pantalla de historial. La pantalla no se vio. |
@@ -101,7 +102,8 @@ para ver también las tarjetas de sensores):
 
 ## Problemas abiertos y cosas a recordar
 
-- **La app no se ejecutó en ningún dispositivo.** Todo lo verificado de la app es lógica y red.
+- La app corrió en el teléfono de Francisco y conectó, pero las pantallas no fueron revisadas
+  desde acá: falta su confirmación de que el dashboard, el historial y los procesos se ven bien.
 - El agente solo se ejecutó en Linux amd64. Los binarios de Windows y ARM compilan (`make cross`)
   pero no se ejecutaron: falta probarlos en esas plataformas.
 - Para probar el agente sin la app: `agent/bin/gomonitor-probe` (cliente WebSocket) y `curl`. Los
