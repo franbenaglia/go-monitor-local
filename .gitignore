@@ -1,0 +1,24 @@
+# Agente
+agent/bin/
+agent/data/
+*.db
+*.db-wal
+*.db-shm
+agent/configs/config.yaml
+
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/captures/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Editores y sistema
+.idea/
+*.iml
+.vscode/
+.DS_Store
