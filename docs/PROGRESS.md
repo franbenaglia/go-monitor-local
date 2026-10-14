@@ -5,11 +5,9 @@ Se actualiza al cerrar cada hito y al terminar cada sesión. El detalle de lo he
 
 ## Estado actual
 
-- **Último hito cerrado:** M14. Agente y app están escritos, y `make check` pasa.
-- **Próximo paso:** M13 y M15, que necesitan el teléfono: instalar el APK
-  (`cd android && ./gradlew installDebug`) y recorrer la lista "Verificación en el teléfono" de
-  más abajo. El 2026-10-13 Francisco instaló la app y conectó por Wi-Fi (ver criterios); falta
-  que confirme cómo se ven las pantallas y recorrer el resto de la lista.
+- **Último hito cerrado:** M15. La v1 está completa y probada en el teléfono de Francisco.
+- **Próximo paso:** a elegir entre M16 (descubrimiento mDNS) y M17 (Raspberry Pi con un sensor
+  real). Ninguno está empezado.
 - **Código existente:** `agent/` y `android/`.
 
 ## Entorno verificado (2026-10-13)
@@ -46,17 +44,13 @@ Un hito se marca solo cuando `make check` pasa con su código incluido.
 - [x] **M10** Dashboard: tarjetas de sistema y tarjetas genéricas por serie.
 - [x] **M11** Historial con selector de período; grafica las series del sistema y los sensores.
 - [x] **M12** Procesos con orden por CPU o memoria.
-- [ ] **M13** Verificación de punta a punta en el teléfono físico por adb contra el agente local
-      (requiere que Francisco conecte el celular).
-
-M7 a M12 están marcados porque el código existe, compila, pasa lint sin errores y su lógica está
-probada. Las pantallas (M8, M10, M11, M12) **no se vieron en un dispositivo**: puede haber
-problemas de diseño o de comportamiento que solo aparecen en pantalla.
+- [x] **M13** Verificación de punta a punta en el teléfono físico contra el agente local
+      (2026-10-13, hecha por Francisco).
 
 ### Cierre de la v1
 
 - [x] **M14** README principal con los 16 puntos de la sección 12 de `SPEC.md`.
-- [ ] **M15** Prueba en teléfono físico con router y con hotspot (la hace Francisco).
+- [x] **M15** Prueba en teléfono físico con router y con hotspot (2026-10-13, hecha por Francisco).
 
 ### Después de la v1
 
@@ -72,12 +66,12 @@ problemas de diseño o de comportamiento que solo aparecen en pantalla.
 | Almacena historial en SQLite | hecho | Filas contadas en la base tras una ejecución real; pruebas de `internal/storage`. |
 | Muestra en consola su dirección IP local | hecho | Mostró solo la IP del Wi-Fi y omitió loopback y los tres puentes de Docker. |
 | El celular se conecta con IP, puerto y token | hecho | 2026-10-13: teléfono físico por Wi-Fi con router; conexión TCP establecida desde el teléfono al agente (vista con `ss`), app en primer plano y sin fallos en logcat. |
-| La app recibe métricas por WebSocket | verificado sin dispositivo | `make check-e2e`: recibe muestras reales, una por ciclo. Falta el teléfono. |
+| La app recibe métricas por WebSocket | hecho | `make check-e2e` y, el 2026-10-13, el dashboard en vivo en el teléfono de Francisco. |
 | El dashboard muestra CPU, RAM, discos, red y procesos | hecho | 2026-10-13: Francisco lo confirmó en su teléfono, incluidas las tarjetas de sensores simulados; nada cortado ni ilegible. |
 | El historial se consulta mediante REST | verificado sin dispositivo | `curl` y `check-e2e`, que usa el mismo código que la pantalla de historial. 2026-10-13: Francisco confirmó en su teléfono que los gráficos se dibujan al cambiar de período. |
-| La app detecta una desconexión | verificado sin dispositivo | `check-e2e` detiene el agente y la app pasa a Reconectando; pruebas con tiempo virtual para la red que desaparece sin avisar. |
-| Se reconecta automáticamente | verificado sin dispositivo | `check-e2e` reinicia el agente y la app vuelve a Conectado sola. |
-| Funciona sin conexión a Internet | sin verificar | Ni el agente ni la app llaman a nada externo, pero no se probó con la red sin salida a Internet. |
+| La app detecta una desconexión | hecho | 2026-10-13: Francisco detuvo el agente y la app pasó a Reconectando con el motivo. También `check-e2e`. |
+| Se reconecta automáticamente | hecho | 2026-10-13: al reiniciar el agente la app volvió sola a Conectado en el teléfono. También `check-e2e`. |
+| Funciona sin conexión a Internet | parcial | 2026-10-13: funcionó con la computadora conectada al hotspot del teléfono. No quedó confirmado si los datos móviles estaban apagados durante la prueba. |
 | No utiliza ningún servidor central | hecho | El agente es un solo binario; la app solo se conecta a la IP que carga el usuario. |
 | Las pruebas y compilaciones finalizan correctamente | hecho | `make check`: `go vet`, `go test -race`, 56 pruebas unitarias de la app, 3 de punta a punta, `assembleDebug`. Lint: 0 errores. |
 
@@ -102,8 +96,10 @@ para ver también las tarjetas de sensores):
 
 ## Problemas abiertos y cosas a recordar
 
-- En el teléfono de Francisco: dashboard e historial confirmados. Falta confirmar el orden por
-  CPU o memoria en Procesos, la reconexión al reiniciar el agente y el uso con hotspot.
+- Probado por Francisco en su teléfono el 2026-10-13: conexión, dashboard, historial, orden de
+  procesos, reconexión al reiniciar el agente y uso con hotspot. De la lista de arriba no hay
+  confirmación de los puntos 7 (apagar el Wi-Fi), 8 (conexión automática al abrir) y 9 (girar el
+  teléfono).
 - El agente solo se ejecutó en Linux amd64. Los binarios de Windows y ARM compilan (`make cross`)
   pero no se ejecutaron: falta probarlos en esas plataformas.
 - Para probar el agente sin la app: `agent/bin/gomonitor-probe` (cliente WebSocket) y `curl`. Los
