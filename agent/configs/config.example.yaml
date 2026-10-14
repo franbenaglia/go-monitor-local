@@ -1,0 +1,42 @@
+# Configuración de ejemplo de GoMonitor Agent.
+#
+# Copiar como config.yaml en el directorio desde donde se inicia el agente, o
+# indicar otra ruta con -config o GOMONITOR_CONFIG.
+#
+# Prioridad, de mayor a menor: flags, variables de entorno, este archivo,
+# valores predeterminados.
+
+# Nombre con el que este agente se identifica ante la app.
+agent_id: "office-pc"
+
+# 0.0.0.0 acepta conexiones desde la red. 127.0.0.1 solo desde esta computadora.
+listen_address: "0.0.0.0"
+port: 8080
+
+# Tiempo entre muestras. Mínimo 1s.
+collection_interval: "5s"
+
+# Token que la app debe presentar. Cambiarlo antes de usar el agente.
+api_token: "change-this-token"
+
+# Cantidad de procesos con más CPU y con más memoria que se informan.
+top_processes: 10
+
+database_path: "./data/gomonitor.db"
+
+# Tiempo que se conserva el historial. Acepta sufijos s, m, h y d.
+retention: "7d"
+
+# debug, info, warn o error.
+log_level: "info"
+
+# Recolectores activos. "system" mide esta computadora; "simulated" genera
+# lecturas de sensores ficticias para probar sin hardware.
+collectors:
+  - system
+
+# Orígenes de navegador autorizados a usar la API. La app Android no lo necesita.
+cors_allowed_origins: []
+
+# Máximo de clientes WebSocket simultáneos.
+max_ws_clients: 8

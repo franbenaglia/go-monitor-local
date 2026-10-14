@@ -128,6 +128,10 @@ Reglas:
   Ausente no significa cero: el cliente conserva el último valor conocido y su hora.
 - `processes` es la unión sin duplicados de los N procesos con más CPU y los N con más memoria,
   ordenada por CPU descendente. Tiene entre N y 2N elementos.
+- `cpu_percent` de un proceso usa la escala de `top`: 100 es un núcleo completo, así que un
+  proceso con varios hilos puede superar 100. `cpu.total_percent` va de 0 a 100 sobre todos los
+  núcleos.
+- Un proceso informa `cpu_percent` 0 en la primera muestra en que aparece.
 - La primera muestra tras iniciar el agente informa `0` en las velocidades de red, porque no hay
   una muestra anterior con la que comparar.
 
@@ -166,6 +170,9 @@ va en la URL. El WebSocket se autentica con un mensaje (sección 6).
 | 503 | `not_ready` | Todavía no hay ninguna muestra. |
 | 503 | `too_many_connections` | Se alcanzó el máximo de clientes WebSocket. |
 | 500 | `internal_error` | Falla interna. El detalle queda en el log, no en la respuesta. |
+
+Una cadena de consulta mal formada (por ejemplo con `;` sin codificar) devuelve
+`400 invalid_parameter` en lugar de ignorar el parámetro.
 
 `message` está en inglés y es para diagnóstico. El cliente decide qué mostrar según `code`.
 
@@ -220,7 +227,8 @@ Series por defecto: `cpu.total_percent`, `memory.used_percent`,
 ```
 
 El agente agrupa las lecturas en intervalos para acotar la respuesta. `t` es el inicio del
-intervalo. Los intervalos sin lecturas se omiten, así que el cliente debe dibujar un hueco y no
+intervalo. `to` es el final del intervalo en curso, así que puede quedar unos segundos en el
+futuro, y `from` es `to` menos el período. Los intervalos sin lecturas se omiten, así que el cliente debe dibujar un hueco y no
 unir los puntos vecinos cuando la separación supera `bucket_seconds`.
 
 | `period` | `bucket_seconds` | Puntos máximos por serie |

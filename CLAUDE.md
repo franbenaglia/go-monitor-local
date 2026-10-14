@@ -22,7 +22,7 @@ servidor central, sin cloud, sin Internet.
 ## Estructura
 
 ```text
-agent/     Agente Go (módulo independiente)
+agent/     Agente Go (módulo `gomonitor/agent`); paquetes descritos en `agent/README.md`
 android/   App Android nativa en Kotlin + Jetpack Compose
 docs/      Documentos de arriba
 Makefile   `make check` verifica todo lo que exista
@@ -36,7 +36,17 @@ make check-agent
 make check-android
 ```
 
-Los comandos propios de cada lado se agregan acá cuando existan (ver hitos en `docs/PROGRESS.md`).
+Agente (desde `agent/`):
+
+```bash
+make build            # bin/gomonitor-agent y bin/gomonitor-probe
+make test             # go vet + go test -race
+make cross            # Linux, Windows y Raspberry Pi
+./bin/gomonitor-agent -port 18080 -collectors system,simulated
+./bin/gomonitor-probe -address 127.0.0.1:18080 -count 3    # cliente WebSocket de prueba
+```
+
+Los comandos de la app se agregan acá cuando exista.
 
 ## Reglas de trabajo
 
