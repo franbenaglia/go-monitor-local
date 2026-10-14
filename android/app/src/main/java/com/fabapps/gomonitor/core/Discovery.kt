@@ -65,6 +65,12 @@ object Discovery {
         return discovered.filterNot { it.address in known }.distinctBy { it.address }
     }
 
+    /** Cuántos de los encontrados ya están guardados; distingue "no hay nada" de "no hay nada nuevo". */
+    fun savedCount(discovered: List<DiscoveredAgent>, saved: List<SavedConnection>): Int {
+        val known = saved.map { it.address }.toSet()
+        return discovered.map { it.address }.distinct().count { it in known }
+    }
+
     /** Formulario precargado con lo descubierto. El token queda vacío: no viaja en el anuncio. */
     fun toForm(agent: DiscoveredAgent) = ConnectionForm(
         name = agent.displayName.take(40),

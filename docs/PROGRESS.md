@@ -6,11 +6,10 @@ Se actualiza al cerrar cada hito y al terminar cada sesión. El detalle de lo he
 ## Estado actual
 
 - **Último hito cerrado:** M15. La v1 está completa y probada en el teléfono de Francisco.
-- **En curso:** M16, descubrimiento mDNS. El código está en agente y app y `make check` pasa. El
-  anuncio del agente se verificó con `avahi-browse`. **Falta verlo en el teléfono**: que la app
-  liste el agente en Conexiones y que "Agregar" abra el formulario precargado.
-- **Próximo paso:** que Francisco reinicie el agente con el binario nuevo, reinstale la app
-  (`cd android && ./gradlew installDebug`) y pruebe. Después, M17 cuando haya Raspberry Pi.
+- **M16 cerrado** el 2026-10-13: Francisco eliminó la conexión guardada, la app detectó el agente
+  por mDNS y la agregó desde el panel. Con router Wi-Fi; con hotspot no se probó.
+- **Próximo paso:** M17 cuando haya Raspberry Pi. Pendiente menor: que Francisco confirme en el
+  teléfono el texto nuevo del panel cuando todo lo encontrado ya está guardado.
 - **Código existente:** `agent/` y `android/`.
 
 ## Entorno verificado (2026-10-13)
@@ -57,9 +56,8 @@ Un hito se marca solo cuando `make check` pasa con su código incluido.
 
 ### Después de la v1
 
-- [ ] **M16** Descubrimiento mDNS (`_gomonitor._tcp.local`). Hecho y verificado: anuncio del
-      agente (pruebas + `avahi-browse`, incluido el retiro al detenerlo) y lógica de la app (7
-      pruebas). Sin verificar: la búsqueda con `NsdManager` y la pantalla, que necesitan teléfono.
+- [x] **M16** Descubrimiento mDNS (`_gomonitor._tcp.local`). Anuncio verificado con
+      `avahi-browse`; búsqueda y alta desde el panel confirmadas por Francisco en su teléfono.
 - [ ] **M17** Raspberry Pi: compilación ARM probada en hardware y primer recolector de sensor real.
 
 ## Criterios de aceptación (sección 13 de `SPEC.md`)

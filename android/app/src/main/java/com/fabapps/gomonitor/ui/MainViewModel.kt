@@ -48,6 +48,13 @@ data class HistoryUiState(
     val loadedAtMillis: Long? = null,
 )
 
+data class DiscoveryUiState(
+    /** Agentes encontrados que todavía no están guardados. */
+    val unsaved: List<DiscoveredAgent> = emptyList(),
+    /** Agentes encontrados que ya figuran entre las conexiones guardadas. */
+    val alreadySaved: Int = 0,
+)
+
 sealed interface TestUiState {
     data object Running : TestUiState
     data class Done(val result: TestResult) : TestUiState
@@ -92,13 +99,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val tests: StateFlow<Map<String, TestUiState>> = _tests.asStateFlow()
 
     /**
-     * Agentes anunciados en la red que todavía no están guardados. La búsqueda solo corre
-     * mientras la pantalla de conexiones los está mirando, y se detiene poco después de salir.
+     * Resultado de la búsqueda en la red. Solo corre mientras la pantalla de conexiones lo está
+     * mirando, y se detiene poco después de salir.
      */
-    val discovered: StateFlow<List<DiscoveredAgent>> =
+    val discovery: StateFlow<DiscoveryUiState> =
         combine(NsdDiscovery(application).agents(), _connections) { found, saved ->
-            Discovery.unsaved(found, saved.orEmpty())
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 2_000), emptyList())
+            DiscoveryUiState(
+                unsaved = Discovery.unsaved(found, saved.orEmpty()),
+                alreadySaved = Discovery.savedCount(found, saved.orEmpty()),
+            )
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 2_000), DiscoveryUiState())
 
     private var historyJob: Job? = null
 

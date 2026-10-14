@@ -92,6 +92,13 @@ class DiscoveryTest {
         val saved = listOf(connection(host = "192.168.1.50"))
         assertEquals(listOf("b", "c"), Discovery.unsaved(discovered, saved).map { it.serviceName })
         assertEquals(3, Discovery.unsaved(discovered, emptyList()).size)
+
+        // Para no mostrar "Buscando…" cuando lo único que hay en la red ya está guardado.
+        assertEquals(1, Discovery.savedCount(discovered, saved))
+        assertEquals(0, Discovery.savedCount(discovered, emptyList()))
+        assertEquals(0, Discovery.savedCount(emptyList(), saved))
+        val all = listOf(connection(id = "a", host = "192.168.1.50"), connection(id = "b", host = "192.168.1.60"))
+        assertEquals(2, Discovery.savedCount(discovered, all))
     }
 
     @Test

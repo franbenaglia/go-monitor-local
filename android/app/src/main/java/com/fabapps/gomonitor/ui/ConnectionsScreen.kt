@@ -72,7 +72,7 @@ fun ConnectionsScreen(viewModel: MainViewModel, onConnected: () -> Unit) {
 
     // Recolectar este estado es lo que mantiene activa la búsqueda en la red: empieza al
     // entrar a esta pantalla y se detiene al salir.
-    val discovered by viewModel.discovered.collectAsStateWithLifecycle()
+    val discovery by viewModel.discovery.collectAsStateWithLifecycle()
 
     val list = connections
     Box(Modifier.fillMaxSize()) {
@@ -108,7 +108,7 @@ fun ConnectionsScreen(viewModel: MainViewModel, onConnected: () -> Unit) {
                         onDelete = { deleting = connection },
                     )
                 }
-                DiscoveryPanel(discovered, onAdd = { editing = Editing.New(Discovery.toForm(it)) })
+                DiscoveryPanel(discovery, onAdd = { editing = Editing.New(Discovery.toForm(it)) })
                 // Espacio para que el botón flotante no tape la última tarjeta.
                 Spacer(Modifier.height(72.dp))
             }
@@ -149,9 +149,21 @@ fun ConnectionsScreen(viewModel: MainViewModel, onConnected: () -> Unit) {
 
 /** Agentes que se anuncian en la red y todavía no están guardados. */
 @Composable
-private fun DiscoveryPanel(agents: List<DiscoveredAgent>, onAdd: (DiscoveredAgent) -> Unit) {
+private fun DiscoveryPanel(discovery: DiscoveryUiState, onAdd: (DiscoveredAgent) -> Unit) {
+    val agents = discovery.unsaved
     Panel("Encontradas en la red", accent = Palette.Download) {
         if (agents.isEmpty()) {
+            if (discovery.alreadySaved > 0) {
+                // Hay agentes en la red, pero ya están en la lista de arriba: no queda nada por
+                // ofrecer. La búsqueda sigue, sin mostrar un indicador que parezca trabado.
+                Text(
+                    if (discovery.alreadySaved == 1) "La computadora encontrada en esta red ya está guardada."
+                    else "Las ${discovery.alreadySaved} computadoras encontradas en esta red ya están guardadas.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Text("Si se inicia otro agente en la red, va a aparecer acá.", style = MaterialTheme.typography.bodySmall, color = Palette.Muted)
+                return@Panel
+            }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp, color = Palette.Download)
                 Text("  Buscando…", style = MaterialTheme.typography.bodyMedium, color = Palette.Muted)
