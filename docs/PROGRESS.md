@@ -73,8 +73,8 @@ problemas de diseño o de comportamiento que solo aparecen en pantalla.
 | Muestra en consola su dirección IP local | hecho | Mostró solo la IP del Wi-Fi y omitió loopback y los tres puentes de Docker. |
 | El celular se conecta con IP, puerto y token | hecho | 2026-10-13: teléfono físico por Wi-Fi con router; conexión TCP establecida desde el teléfono al agente (vista con `ss`), app en primer plano y sin fallos en logcat. |
 | La app recibe métricas por WebSocket | verificado sin dispositivo | `make check-e2e`: recibe muestras reales, una por ciclo. Falta el teléfono. |
-| El dashboard muestra CPU, RAM, discos, red y procesos | sin verificar en dispositivo | El código compila; los datos llegan completos en `check-e2e`. La pantalla no se vio. |
-| El historial se consulta mediante REST | verificado sin dispositivo | `curl` y `check-e2e`, que usa el mismo código que la pantalla de historial. La pantalla no se vio. |
+| El dashboard muestra CPU, RAM, discos, red y procesos | hecho | 2026-10-13: Francisco lo confirmó en su teléfono, incluidas las tarjetas de sensores simulados; nada cortado ni ilegible. |
+| El historial se consulta mediante REST | verificado sin dispositivo | `curl` y `check-e2e`, que usa el mismo código que la pantalla de historial. 2026-10-13: Francisco confirmó en su teléfono que los gráficos se dibujan al cambiar de período. |
 | La app detecta una desconexión | verificado sin dispositivo | `check-e2e` detiene el agente y la app pasa a Reconectando; pruebas con tiempo virtual para la red que desaparece sin avisar. |
 | Se reconecta automáticamente | verificado sin dispositivo | `check-e2e` reinicia el agente y la app vuelve a Conectado sola. |
 | Funciona sin conexión a Internet | sin verificar | Ni el agente ni la app llaman a nada externo, pero no se probó con la red sin salida a Internet. |
@@ -102,8 +102,8 @@ para ver también las tarjetas de sensores):
 
 ## Problemas abiertos y cosas a recordar
 
-- La app corrió en el teléfono de Francisco y conectó, pero las pantallas no fueron revisadas
-  desde acá: falta su confirmación de que el dashboard, el historial y los procesos se ven bien.
+- En el teléfono de Francisco: dashboard e historial confirmados. Falta confirmar el orden por
+  CPU o memoria en Procesos, la reconexión al reiniciar el agente y el uso con hotspot.
 - El agente solo se ejecutó en Linux amd64. Los binarios de Windows y ARM compilan (`make cross`)
   pero no se ejecutaron: falta probarlos en esas plataformas.
 - Para probar el agente sin la app: `agent/bin/gomonitor-probe` (cliente WebSocket) y `curl`. Los
