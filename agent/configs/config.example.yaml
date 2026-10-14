@@ -40,3 +40,7 @@ cors_allowed_origins: []
 
 # Máximo de clientes WebSocket simultáneos.
 max_ws_clients: 8
+
+# Anunciar el agente en la red local por mDNS para que la app lo encuentre sola.
+# La dirección siempre se puede cargar a mano.
+mdns: true

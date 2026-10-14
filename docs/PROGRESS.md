@@ -6,8 +6,11 @@ Se actualiza al cerrar cada hito y al terminar cada sesión. El detalle de lo he
 ## Estado actual
 
 - **Último hito cerrado:** M15. La v1 está completa y probada en el teléfono de Francisco.
-- **Próximo paso:** a elegir entre M16 (descubrimiento mDNS) y M17 (Raspberry Pi con un sensor
-  real). Ninguno está empezado.
+- **En curso:** M16, descubrimiento mDNS. El código está en agente y app y `make check` pasa. El
+  anuncio del agente se verificó con `avahi-browse`. **Falta verlo en el teléfono**: que la app
+  liste el agente en Conexiones y que "Agregar" abra el formulario precargado.
+- **Próximo paso:** que Francisco reinicie el agente con el binario nuevo, reinstale la app
+  (`cd android && ./gradlew installDebug`) y pruebe. Después, M17 cuando haya Raspberry Pi.
 - **Código existente:** `agent/` y `android/`.
 
 ## Entorno verificado (2026-10-13)
@@ -54,7 +57,9 @@ Un hito se marca solo cuando `make check` pasa con su código incluido.
 
 ### Después de la v1
 
-- [ ] **M16** Descubrimiento mDNS (`_gomonitor._tcp.local`) con `NsdManager`.
+- [ ] **M16** Descubrimiento mDNS (`_gomonitor._tcp.local`). Hecho y verificado: anuncio del
+      agente (pruebas + `avahi-browse`, incluido el retiro al detenerlo) y lógica de la app (7
+      pruebas). Sin verificar: la búsqueda con `NsdManager` y la pantalla, que necesitan teléfono.
 - [ ] **M17** Raspberry Pi: compilación ARM probada en hardware y primer recolector de sensor real.
 
 ## Criterios de aceptación (sección 13 de `SPEC.md`)
@@ -111,6 +116,10 @@ para ver también las tarjetas de sensores):
 - Gradle: tras renombrar una carpeta de recursos, la compilación falló con "resource
   mipmap/ic_launcher not found" aunque el archivo estaba. Era una entrada mala en la caché de
   compilación. Se arregla con `./gradlew assembleDebug --no-build-cache --rerun-tasks`.
+- mDNS: `agent/internal/discovery` tiene una prueba que anuncia y busca de verdad por multicast;
+  se omite sola si la red no lo permite. Para verlo a mano: `avahi-browse -rt _gomonitor._tcp`.
+- mDNS con el hotspot del celular: no se probó y es probable que no funcione (el teléfono no suele
+  ver por mDNS a los clientes de su propio punto de acceso). El ingreso manual cubre ese caso.
 - La app mantiene la conexión mientras el proceso vive, también en segundo plano. No hay servicio
   en primer plano: Android puede cortar el socket con la pantalla apagada y la app reconecta al
   volver. Si hace falta monitoreo continuo en segundo plano, es trabajo nuevo.

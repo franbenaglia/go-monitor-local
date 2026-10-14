@@ -135,6 +135,24 @@ miraba el mensaje exterior.
 
 **Consecuencias.** Cubre red y lógica, no pantallas. Lo visual sigue necesitando el teléfono.
 
+## D12 — Descubrimiento mDNS: `brutella/dnssd` en el agente, `NsdManager` en la app (2026-10-13)
+
+**Decisión.** El agente se anuncia con `github.com/brutella/dnssd`. La app busca con `NsdManager`,
+la API de descubrimiento de Android, sin bibliotecas. Implementa lo que D6 dejaba para después.
+
+**Por qué.** `SPEC.md` pide no sumar una dependencia abandonada solo para esto. `dnssd` es Go puro
+(no rompe la compilación cruzada), hace el sondeo de conflictos de nombre que exige el estándar y
+tiene versiones recientes. En Android, `NsdManager` no agrega dependencias ni permisos.
+
+**Consecuencias.**
+- El anuncio es una pista, no una fuente confiable: cualquiera en la red puede publicar uno. La app
+  nunca guarda una conexión a partir del anuncio; abre el formulario precargado y el usuario carga
+  el token.
+- El agente responde consultas mDNS por todas las interfaces, también las de Docker, aunque solo
+  se anuncia activamente por las recomendadas. No afecta al celular, que solo ve la del Wi-Fi.
+- La app solo usa agentes que resuelven a una dirección IPv4.
+- La búsqueda corre únicamente mientras la pantalla de conexiones está visible.
+
 ## Pendientes de decidir
 
 - Intervalo de recolección por recolector (hoy hay uno global). El protocolo ya lo permite porque

@@ -36,7 +36,8 @@ puede ver en pantalla se prueba en un teléfono físico.
 app/src/main/java/com/fabapps/gomonitor/
 ├── core/   Lógica sin dependencias de Android: modelos del protocolo, validación, estados de
 │           conexión, reconexión, formato de unidades, transformación del historial.
-├── data/   OkHttp, almacenamiento de conexiones (DataStore) y estado de la red del teléfono.
+├── data/   OkHttp, almacenamiento de conexiones (DataStore), estado de la red del teléfono y
+│           búsqueda de agentes por mDNS (NsdManager).
 └── ui/     Pantallas en Compose, tema y ViewModel.
 ```
 

@@ -85,10 +85,16 @@ Sin cable: copiar el APK al teléfono y abrirlo, permitiendo instalar desde orí
 ## 6. Conexión del celular
 
 1. Conectar el celular a la misma red Wi-Fi que la computadora.
-2. Abrir GoMonitor Mobile, ir a **Conexiones** y tocar **Agregar computadora**.
-3. Cargar un nombre, la **dirección IP** y el **puerto** que mostró el agente, y el **token**.
-4. Tocar **Probar conexión**: confirma que el agente responde y que el token es correcto.
+2. Abrir GoMonitor Mobile e ir a **Conexiones**.
+3. Si la computadora aparece en **Encontradas en la red**, tocar **Agregar**: la dirección y el
+   puerto ya vienen cargados y solo falta el **token**. Si no aparece, tocar **Agregar a mano** y
+   cargar un nombre, la **dirección IP** y el **puerto** que mostró el agente, y el **token**.
+4. Tocar **Guardar** y después **Probar conexión**: confirma que el agente responde y que el token es correcto.
 5. Tocar **Conectar**. El dashboard empieza a recibir datos.
+
+La búsqueda automática usa mDNS y depende de la red: algunos routers, las redes de invitados y el
+hotspot del celular no la permiten. Cargar la dirección a mano funciona siempre. Para que el agente
+no se anuncie: `-mdns false`.
 
 Con **Conexión automática** activada, la app se conecta sola a esa computadora al abrirse. Si la
 conexión se corta, reintenta con una espera que se duplica en cada intento hasta un minuto.
@@ -182,6 +188,7 @@ agente nunca lo escribe en sus logs ni lo devuelve por la API.
 
 | La app dice | Qué revisar |
 |---|---|
+| La computadora no aparece en "Encontradas en la red" | Es normal en muchas redes; agregarla a mano. Comprobar con `avahi-browse -rt _gomonitor._tcp` que el agente se anuncia. |
 | **Equipo no encontrado** | La IP. Que el agente esté iniciado. Que ambos estén en la misma red. |
 | "el agente no está escuchando en ese puerto" | La computadora responde: revisar el puerto, o que el agente esté iniciado. |
 | "no respondió a tiempo" | El firewall (sección 8) o el aislamiento de clientes del router (sección 9). |
@@ -254,8 +261,6 @@ lo permite en general. Detalle en [android/README.md](android/README.md).
 
 - **HTTPS y WSS**: certificado autofirmado generado por el agente y fijado en la app al guardar la
   conexión, para usar el sistema en redes no confiables.
-- **Descubrimiento automático**: el agente se anuncia por mDNS (`_gomonitor._tcp.local`) y la app
-  lista los que encuentra. El ingreso manual de IP se mantiene como método principal.
 - **Raspberry Pi con sensores**: recolectores para sensores reales (temperatura, humedad, presión)
   sobre la misma interfaz que hoy usa el recolector simulado.
 - **Bluetooth**: transporte alternativo para cuando no hay ninguna red Wi-Fi.

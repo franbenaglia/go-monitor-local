@@ -20,6 +20,7 @@ import (
 	"gomonitor/agent/internal/api"
 	"gomonitor/agent/internal/collector"
 	"gomonitor/agent/internal/config"
+	"gomonitor/agent/internal/discovery"
 	"gomonitor/agent/internal/models"
 	"gomonitor/agent/internal/netinfo"
 	"gomonitor/agent/internal/storage"
@@ -134,7 +135,22 @@ func run() error {
 	logger.Info("agent started", "version", version, "address", address, "agent_id", cfg.AgentID,
 		"collectors", cfg.Collectors, "interval", cfg.CollectionInterval.String(), "database", cfg.DatabasePath)
 
-	background := make(chan struct{}, 2)
+	background := make(chan struct{}, 3)
+	workers := 2
+	if announce, why := shouldAnnounce(cfg); announce {
+		workers++
+		go func() {
+			defer func() { background <- struct{}{} }()
+			interfaces, _ := netinfo.List()
+			// Discovery is optional: if it cannot start the agent keeps working
+			// and the address is entered by hand.
+			if err := discovery.Run(ctx, discovery.Service(cfg.AgentID, hostname, cfg.Port, interfaces)); err != nil {
+				logger.Warn("mDNS announcement unavailable; enter the address manually in the app", "error", err)
+			}
+		}()
+	} else {
+		logger.Debug("mDNS announcement disabled", "reason", why)
+	}
 	go func() {
 		manager.Run(ctx)
 		background <- struct{}{}
@@ -170,7 +186,7 @@ func run() error {
 		logger.Warn("http shutdown", "error", err)
 	}
 	hub.Close()
-	for range 2 {
+	for range workers {
 		select {
 		case <-background:
 		case <-shutdownCtx.Done():
@@ -179,6 +195,18 @@ func run() error {
 	}
 	logger.Info("agent stopped")
 	return nil
+}
+
+// shouldAnnounce reports whether to advertise over mDNS. An agent that only
+// listens on loopback must not invite phones to an address they cannot reach.
+func shouldAnnounce(cfg config.Config) (bool, string) {
+	if !cfg.MDNS {
+		return false, "mdns is false"
+	}
+	if ip := net.ParseIP(cfg.ListenAddress); ip != nil && ip.IsLoopback() {
+		return false, "listening on loopback only"
+	}
+	return true, ""
 }
 
 func newLogger(level string) *slog.Logger {

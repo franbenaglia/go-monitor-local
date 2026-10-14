@@ -124,6 +124,27 @@ func TestListsFromFlags(t *testing.T) {
 	}
 }
 
+func TestMDNSSetting(t *testing.T) {
+	t.Chdir(t.TempDir())
+	cfg, err := Load(nil, env(nil), io.Discard)
+	if err != nil || !cfg.MDNS {
+		t.Fatalf("mDNS must be on by default: %+v %v", cfg, err)
+	}
+	path := writeConfig(t, "mdns: false\n")
+	if cfg, err = Load([]string{"-config", path}, env(nil), io.Discard); err != nil || cfg.MDNS {
+		t.Fatalf("file must turn mDNS off: %+v %v", cfg, err)
+	}
+	if cfg, err = Load([]string{"-config", path}, env(map[string]string{"GOMONITOR_MDNS": "true"}), io.Discard); err != nil || !cfg.MDNS {
+		t.Fatalf("env must override the file: %+v %v", cfg, err)
+	}
+	if cfg, err = Load([]string{"-mdns", "false"}, env(map[string]string{"GOMONITOR_MDNS": "true"}), io.Discard); err != nil || cfg.MDNS {
+		t.Fatalf("flag must override env: %+v %v", cfg, err)
+	}
+	if _, err = Load([]string{"-mdns", "maybe"}, env(nil), io.Discard); err == nil {
+		t.Fatal("an invalid boolean must be rejected")
+	}
+}
+
 func TestParseDuration(t *testing.T) {
 	cases := map[string]time.Duration{"7d": 7 * 24 * time.Hour, "5s": 5 * time.Second, "1h30m": 90 * time.Minute}
 	for in, want := range cases {

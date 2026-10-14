@@ -9,6 +9,8 @@ import com.fabapps.gomonitor.core.ConnectionList
 import com.fabapps.gomonitor.core.ConnectionManager
 import com.fabapps.gomonitor.core.ConnectionState
 import com.fabapps.gomonitor.core.ConnectionTester
+import com.fabapps.gomonitor.core.DiscoveredAgent
+import com.fabapps.gomonitor.core.Discovery
 import com.fabapps.gomonitor.core.ErrorClassifier
 import com.fabapps.gomonitor.core.HistoryResponse
 import com.fabapps.gomonitor.core.HistoryTransform
@@ -23,13 +25,17 @@ import com.fabapps.gomonitor.core.TestResult
 import com.fabapps.gomonitor.core.Validation
 import com.fabapps.gomonitor.data.ConnectionStore
 import com.fabapps.gomonitor.data.NetworkMonitor
+import com.fabapps.gomonitor.data.NsdDiscovery
 import com.fabapps.gomonitor.data.OkHttpTransport
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -84,6 +90,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _tests = MutableStateFlow<Map<String, TestUiState>>(emptyMap())
     val tests: StateFlow<Map<String, TestUiState>> = _tests.asStateFlow()
+
+    /**
+     * Agentes anunciados en la red que todavía no están guardados. La búsqueda solo corre
+     * mientras la pantalla de conexiones los está mirando, y se detiene poco después de salir.
+     */
+    val discovered: StateFlow<List<DiscoveredAgent>> =
+        combine(NsdDiscovery(application).agents(), _connections) { found, saved ->
+            Discovery.unsaved(found, saved.orEmpty())
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 2_000), emptyList())
 
     private var historyJob: Job? = null
 

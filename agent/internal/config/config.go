@@ -44,6 +44,7 @@ type Config struct {
 	Collectors         []string
 	CORSAllowedOrigins []string
 	MaxWSClients       int
+	MDNS               bool
 }
 
 // Default returns the built-in defaults.
@@ -61,6 +62,7 @@ func Default() Config {
 		Collectors:         []string{"system"},
 		CORSAllowedOrigins: nil,
 		MaxWSClients:       8,
+		MDNS:               true,
 	}
 }
 
@@ -79,6 +81,7 @@ var keys = []struct{ name, usage string }{
 	{"collectors", "comma-separated collectors to enable: system, simulated"},
 	{"cors_allowed_origins", "comma-separated browser origins allowed to use the API"},
 	{"max_ws_clients", "maximum simultaneous WebSocket clients"},
+	{"mdns", "announce the agent on the local network (true or false)"},
 }
 
 // Load builds the configuration from args (without the program name) and the
@@ -150,6 +153,7 @@ type fileConfig struct {
 	Collectors         []string `yaml:"collectors"`
 	CORSAllowedOrigins []string `yaml:"cors_allowed_origins"`
 	MaxWSClients       *int     `yaml:"max_ws_clients"`
+	MDNS               *bool    `yaml:"mdns"`
 }
 
 func applyFile(cfg *Config, path string, mustExist bool) error {
@@ -196,6 +200,9 @@ func applyFile(cfg *Config, path string, mustExist bool) error {
 	if err := errors.Join(errs...); err != nil {
 		return fmt.Errorf("config file %s: %w", path, err)
 	}
+	if fc.MDNS != nil {
+		cfg.MDNS = *fc.MDNS
+	}
 	if fc.Collectors != nil {
 		cfg.Collectors = fc.Collectors
 	}
@@ -233,6 +240,8 @@ func (c *Config) set(key, value string) error {
 		c.CORSAllowedOrigins = splitList(value)
 	case "max_ws_clients":
 		c.MaxWSClients, err = strconv.Atoi(value)
+	case "mdns":
+		c.MDNS, err = strconv.ParseBool(value)
 	default:
 		return fmt.Errorf("unknown setting %q", key)
 	}

@@ -51,12 +51,23 @@ El archivo YAML se busca en `./config.yaml`. Otra ruta se indica con `-config` o
 | `collectors` | `-collectors` | `GOMONITOR_COLLECTORS` | `system` |
 | `cors_allowed_origins` | `-cors-allowed-origins` | `GOMONITOR_CORS_ALLOWED_ORIGINS` | vacío |
 | `max_ws_clients` | `-max-ws-clients` | `GOMONITOR_MAX_WS_CLIENTS` | `8` |
+| `mdns` | `-mdns` | `GOMONITOR_MDNS` | `true` |
 
 Las listas se escriben separadas por coma en flags y variables de entorno:
 `-collectors system,simulated`.
 
 El token nunca se escribe en los logs ni se devuelve por la API. Mientras siga el valor
 predeterminado, el agente lo advierte al iniciar.
+
+## Descubrimiento en la red
+
+Con `mdns: true` el agente se anuncia como `_gomonitor._tcp.local` y la app lo lista en la pantalla
+de conexiones. No se anuncia si escucha solo en `127.0.0.1`. Si el anuncio no puede iniciarse, el
+agente lo avisa en el log y sigue funcionando.
+
+```bash
+avahi-browse -rt _gomonitor._tcp     # Linux: ver qué agentes se anuncian
+```
 
 ## Recolectores
 
@@ -104,6 +115,7 @@ internal/storage/      Historial en SQLite y retención
 internal/api/          Endpoints REST, autenticación y límites
 internal/wshub/        Clientes WebSocket
 internal/netinfo/      Detección de direcciones IP locales
+internal/discovery/    Anuncio mDNS
 internal/models/       Tipos compartidos con la forma JSON del protocolo
 internal/apierror/     Formato de error común
 ```

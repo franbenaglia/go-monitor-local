@@ -45,6 +45,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fabapps.gomonitor.core.ConnectionForm
 import com.fabapps.gomonitor.core.ConnectionState
+import com.fabapps.gomonitor.core.DiscoveredAgent
+import com.fabapps.gomonitor.core.Discovery
 import com.fabapps.gomonitor.core.Formatters
 import com.fabapps.gomonitor.core.FormErrors
 import com.fabapps.gomonitor.core.SavedConnection
@@ -53,7 +55,8 @@ import com.fabapps.gomonitor.core.Validation
 
 /** Qué formulario está abierto: ninguno, uno nuevo o la edición de una conexión. */
 private sealed interface Editing {
-    data object New : Editing
+    /** [prefill] trae los datos de un agente encontrado en la red, o va vacío. */
+    data class New(val prefill: ConnectionForm = ConnectionForm()) : Editing
     data class Existing(val connection: SavedConnection) : Editing
 }
 
@@ -67,20 +70,27 @@ fun ConnectionsScreen(viewModel: MainViewModel, onConnected: () -> Unit) {
     var editing by remember { mutableStateOf<Editing?>(null) }
     var deleting by remember { mutableStateOf<SavedConnection?>(null) }
 
+    // Recolectar este estado es lo que mantiene activa la búsqueda en la red: empieza al
+    // entrar a esta pantalla y se detiene al salir.
+    val discovered by viewModel.discovered.collectAsStateWithLifecycle()
+
     val list = connections
     Box(Modifier.fillMaxSize()) {
-        when {
-            list == null -> LoadingState("Cargando conexiones…")
-            list.isEmpty() -> EmptyState(
-                title = "Todavía no hay computadoras",
-                message = "Iniciá GoMonitor Agent en la computadora y cargá acá la dirección que muestra al arrancar.",
-                actionLabel = "Agregar computadora",
-                onAction = { editing = Editing.New },
-            )
-            else -> Column(
+        if (list == null) {
+            LoadingState("Cargando conexiones…")
+        } else {
+            Column(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                if (list.isEmpty()) {
+                    Panel("Todavía no hay computadoras") {
+                        Text(
+                            "Iniciá GoMonitor Agent en la computadora. Si aparece abajo, tocá Agregar; si no, cargá a mano la dirección que el agente muestra al arrancar.",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
                 list.forEach { connection ->
                     val isTarget = target?.id == connection.id
                     ConnectionCard(
@@ -98,17 +108,16 @@ fun ConnectionsScreen(viewModel: MainViewModel, onConnected: () -> Unit) {
                         onDelete = { deleting = connection },
                     )
                 }
+                DiscoveryPanel(discovered, onAdd = { editing = Editing.New(Discovery.toForm(it)) })
                 // Espacio para que el botón flotante no tape la última tarjeta.
                 Spacer(Modifier.height(72.dp))
             }
-        }
-        if (!list.isNullOrEmpty()) {
             ExtendedFloatingActionButton(
-                onClick = { editing = Editing.New },
+                onClick = { editing = Editing.New() },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
                 containerColor = Palette.Cpu,
                 contentColor = Palette.Background,
-            ) { Text("Agregar computadora") }
+            ) { Text("Agregar a mano") }
         }
     }
 
@@ -116,6 +125,7 @@ fun ConnectionsScreen(viewModel: MainViewModel, onConnected: () -> Unit) {
         val existing = (current as? Editing.Existing)?.connection
         ConnectionFormDialog(
             existing = existing,
+            prefill = (current as? Editing.New)?.prefill,
             onDismiss = { editing = null },
             onSave = { form -> if (viewModel.save(form, existing)) editing = null },
         )
@@ -134,6 +144,34 @@ fun ConnectionsScreen(viewModel: MainViewModel, onConnected: () -> Unit) {
             },
             dismissButton = { TextButton(onClick = { deleting = null }) { Text("Cancelar") } },
         )
+    }
+}
+
+/** Agentes que se anuncian en la red y todavía no están guardados. */
+@Composable
+private fun DiscoveryPanel(agents: List<DiscoveredAgent>, onAdd: (DiscoveredAgent) -> Unit) {
+    Panel("Encontradas en la red", accent = Palette.Download) {
+        if (agents.isEmpty()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp, color = Palette.Download)
+                Text("  Buscando…", style = MaterialTheme.typography.bodyMedium, color = Palette.Muted)
+            }
+            Text(
+                "Si la computadora no aparece, agregala a mano: algunos routers y el hotspot del celular no permiten la búsqueda automática.",
+                style = MaterialTheme.typography.bodySmall, color = Palette.Muted,
+            )
+            return@Panel
+        }
+        agents.forEach { agent ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(agent.displayName, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(agent.address, style = MaterialTheme.typography.bodySmall, color = Palette.Muted, maxLines = 1)
+                }
+                OutlinedButton(onClick = { onAdd(agent) }) { Text("Agregar") }
+            }
+        }
+        Text("Al agregar vas a tener que cargar el token del agente.", style = MaterialTheme.typography.bodySmall, color = Palette.Muted)
     }
 }
 
@@ -192,8 +230,13 @@ private fun ConnectionCard(
 }
 
 @Composable
-private fun ConnectionFormDialog(existing: SavedConnection?, onDismiss: () -> Unit, onSave: (ConnectionForm) -> Unit) {
-    var form by remember { mutableStateOf(existing?.let(ConnectionForm::from) ?: ConnectionForm()) }
+private fun ConnectionFormDialog(
+    existing: SavedConnection?,
+    prefill: ConnectionForm?,
+    onDismiss: () -> Unit,
+    onSave: (ConnectionForm) -> Unit,
+) {
+    var form by remember { mutableStateOf(existing?.let(ConnectionForm::from) ?: prefill ?: ConnectionForm()) }
     // Los errores se muestran recién después del primer intento de guardar.
     var submitted by remember { mutableStateOf(false) }
     var showToken by remember { mutableStateOf(false) }

@@ -398,7 +398,35 @@ Un cliente lento no frena al agente: si no llega a leer, el servidor descarta la
 le entrega solo la más reciente. El cliente no debe asumir que recibe todas las muestras; para
 reconstruir lo perdido existe `/history`.
 
-## 7. Cambios de versión
+## 7. Descubrimiento
+
+El agente se anuncia por mDNS/DNS-SD, salvo que `mdns` sea `false` o que escuche solo en loopback.
+
+| Dato | Valor |
+|---|---|
+| Tipo de servicio | `_gomonitor._tcp` en el dominio `local` |
+| Nombre de instancia | el `agent_id` |
+| Puerto (registro SRV) | el puerto del agente |
+
+Registros TXT:
+
+| Clave | Valor |
+|---|---|
+| `agent_id` | Identificador del agente. |
+| `name` | Nombre del equipo (hostname), para mostrar. |
+| `port` | El puerto, repetido del registro SRV. |
+| `version` | `protocol_version`. |
+
+El anuncio no incluye el token ni dice si el agente lo exige: el usuario lo carga siempre.
+
+El descubrimiento es una ayuda y no reemplaza el ingreso manual. Muchos routers y redes de
+invitados filtran multicast, y con el hotspot del celular puede no funcionar. Un cliente no debe
+confiar en los datos del anuncio: antes de guardar una conexión la comprueba con `/health`.
+
+Si un cliente encuentra un agente con `version` mayor a la que entiende, lo muestra igual y deja
+que la comprobación de `/health` informe la incompatibilidad.
+
+## 8. Cambios de versión
 
 - Agregar campos, series, valores de `kind` o de `unit` no cambia `protocol_version`. Los clientes
   ignoran lo que no conocen.
