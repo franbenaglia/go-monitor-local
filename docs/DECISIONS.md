@@ -103,6 +103,38 @@ formato, transformación del historial) va en clases sin dependencias de Android
 en la JVM. Lo que solo se ve en pantalla queda como "sin verificar en dispositivo" en
 `PROGRESS.md` hasta que haya teléfono conectado.
 
+## D9 — `targetSdk` 35 aunque se compile contra una API más nueva (2026-10-13)
+
+**Decisión.** La app compila contra la API 37 pero declara `targetSdk = 35`.
+
+**Por qué.** Las versiones nuevas de Android restringen el acceso a la red local para las apps que
+apuntan a ellas: hace falta declarar y pedir un permiso para conectarse a direcciones de la LAN.
+Esta app no hace otra cosa que conectarse a la LAN. Con `targetSdk` 35 esa restricción no aplica.
+
+**Consecuencias.** Antes de subir `targetSdk` hay que leer la documentación vigente sobre el
+permiso de red local, agregarlo al manifiesto, pedirlo en tiempo de ejecución y probar en un
+teléfono. Lo anterior está escrito de memoria y no se verificó contra la documentación actual.
+
+## D10 — OkHttp 4.12 (2026-10-13)
+
+**Decisión.** Cliente HTTP y WebSocket: OkHttp, rama 4.x.
+
+**Por qué.** Es la rama con más años de uso en Android y alcanza para lo que la app necesita. La
+5.x cambia el empaquetado por plataforma; no hay nada de ella que haga falta hoy.
+
+## D11 — Prueba de punta a punta sin teléfono (2026-10-13)
+
+**Decisión.** `make check-e2e` compila el agente y ejecuta, en la JVM, el `OkHttpTransport` y el
+`ConnectionManager` reales de la app contra ese agente: conexión, métricas, historial, token
+incorrecto, puerto cerrado y reconexión al reiniciar el agente.
+
+**Por qué.** Sin emulador (D8) y sin modo web (D2), era la única forma de comprobar la capa de red
+de la app sin depender de que haya un teléfono conectado. La primera ejecución encontró un error
+real: OkHttp envuelve el motivo de la falla en la causa de la excepción, y la clasificación solo
+miraba el mensaje exterior.
+
+**Consecuencias.** Cubre red y lógica, no pantallas. Lo visual sigue necesitando el teléfono.
+
 ## Pendientes de decidir
 
 - Intervalo de recolección por recolector (hoy hay uno global). El protocolo ya lo permite porque

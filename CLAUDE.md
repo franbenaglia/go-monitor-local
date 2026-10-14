@@ -23,7 +23,7 @@ servidor central, sin cloud, sin Internet.
 
 ```text
 agent/     Agente Go (módulo `gomonitor/agent`); paquetes descritos en `agent/README.md`
-android/   App Android nativa en Kotlin + Jetpack Compose
+android/   App Android nativa en Kotlin + Jetpack Compose; capas descritas en `android/README.md`
 docs/      Documentos de arriba
 Makefile   `make check` verifica todo lo que exista
 ```
@@ -31,9 +31,10 @@ Makefile   `make check` verifica todo lo que exista
 ## Comandos
 
 ```bash
-make check            # vet + tests del agente, tests + build de la app
-make check-agent
-make check-android
+make check            # todo lo de abajo
+make check-agent      # go vet + go test -race
+make check-android    # pruebas unitarias de la app + assembleDebug
+make check-e2e        # red de la app (OkHttp + ConnectionManager reales) contra el agente
 ```
 
 Agente (desde `agent/`):
@@ -46,12 +47,21 @@ make cross            # Linux, Windows y Raspberry Pi
 ./bin/gomonitor-probe -address 127.0.0.1:18080 -count 3    # cliente WebSocket de prueba
 ```
 
-Los comandos de la app se agregan acá cuando exista.
+App (desde `android/`, siempre con el wrapper):
+
+```bash
+./gradlew testDebugUnitTest
+./gradlew assembleDebug        # app/build/outputs/apk/debug/app-debug.apk
+./gradlew lintDebug
+./gradlew installDebug         # solo con el teléfono conectado por adb
+```
 
 ## Reglas de trabajo
 
 - El modelo de datos es genérico: toda magnitud escalar es una *serie* con id, tipo y unidad. No
   agregar campos fijos para una métrica nueva; agregar una serie (ver D1 en `docs/DECISIONS.md`).
+- En la app, la lógica va en `core/`, sin dependencias de Android, para probarla en la JVM. Las
+  pantallas solo muestran estado y llaman al ViewModel.
 - Un recolector nuevo implementa la interfaz `Collector` y no toca API, almacenamiento ni app.
 - El código de hardware (GPIO, I2C) va detrás de build tags para que todo compile en amd64.
 - Cambios de protocolo: primero `docs/PROTOCOL.md`, después agente y app en el mismo hito.

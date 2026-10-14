@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Una línea de pulso sobre barras: un monitor. Dibujado dentro de la zona segura de 66dp. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#2A3140" android:pathData="M32,58h8v18h-8z" />
+    <path android:fillColor="#2A3140" android:pathData="M44,48h8v28h-8z" />
+    <path android:fillColor="#2A3140" android:pathData="M56,54h8v22h-8z" />
+    <path android:fillColor="#2A3140" android:pathData="M68,42h8v34h-8z" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M28,52 L42,52 L48,36 L57,64 L63,46 L68,52 L80,52"
+        android:strokeColor="#4FC3F7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="4" />
+</vector>

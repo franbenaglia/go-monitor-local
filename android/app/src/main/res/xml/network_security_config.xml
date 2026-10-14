@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Permite HTTP y WebSocket sin TLS hacia el agente. La dirección la escribe el usuario y puede
+    ser cualquier IP privada, y este archivo solo admite reglas por dominio, no por rango de IP.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
